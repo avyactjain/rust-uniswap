@@ -1,0 +1,9 @@
+{
+    "WalletAddrs": [
+        "0xc69C492e9D4976A449703a58c4ADE88a62d533a3",
+        "0xF769b27F8c8C7689B91ffC115a6D8C9C6bEd9C8b"
+    ],
+    "ChainId": 1,
+    "RpcUrl": "wss://frosty-serene-slug.quiknode.pro/e1f286156fd5df7bc048942744dcd1497d3d9129/",
+    "ListenAddress": "0.0.0.0:10000"
+}

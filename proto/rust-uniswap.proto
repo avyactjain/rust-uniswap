@@ -1,0 +1,25 @@
+syntax = "proto3";
+package uniswapAPI; 
+import "google/protobuf/empty.proto";
+
+
+
+service uniswapAPI {
+    rpc GetWalletBalance (BalanceRequest) returns (BalanceResponse);
+    rpc GetEthPriceFromPool (google.protobuf.Empty) returns (EthPriceResponse);
+}
+
+
+message BalanceRequest {
+    string wallet_addr = 1;
+}
+
+message BalanceResponse {
+    bool successful = 1;
+    string message = 2;
+}
+
+message EthPriceResponse {
+    bool successful = 1;
+    string message = 2;
+}

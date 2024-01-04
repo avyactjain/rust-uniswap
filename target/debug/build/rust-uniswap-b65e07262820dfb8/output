@@ -1,0 +1,2 @@
+cargo:rerun-if-changed=proto/rust-uniswap.proto
+cargo:rerun-if-changed=proto
