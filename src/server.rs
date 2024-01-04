@@ -26,7 +26,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let contract = Contract::from_json(
         web3_client.eth(),
         Address::from_str("0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640").unwrap(),
-        include_bytes!("/Users/avyactjain/defi/rust-uniswap/abi/uni_v3_eth_usdc_pool.json"),
+        include_bytes!("../abi/uni_v3_eth_usdc_pool.json"),
     )
     .expect("Error : Unable to load the ETH/USDC pool smart-contract.");
 
