@@ -8,6 +8,7 @@ pub mod uniswap {
     tonic::include_proto!("uniswap_api");
 }
 mod config;
+mod types;
 mod uniswap_service;
 
 use config::UniswapAPIconfig;
@@ -23,17 +24,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let addr: SocketAddr = config.listen_address.parse()?;
 
-    let contract = Contract::from_json(
-        web3_client.eth(),
-        Address::from_str("0x88e6A0c2dDD26FEEb64F039a2c41296FcB3f5640").unwrap(),
-        include_bytes!("../abi/uni_v3_eth_usdc_pool.json"),
-    )
-    .expect("Error : Unable to load the ETH/USDC pool smart-contract.");
-
     let uniswap_service = UniswapService {
         config,
         web3_client,
-        eth_usdc_contract: contract,
     };
 
     Server::builder()

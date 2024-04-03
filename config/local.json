@@ -4,6 +4,6 @@
         "0xF769b27F8c8C7689B91ffC115a6D8C9C6bEd9C8b"
     ],
     "ChainId": 1,
-    "RpcUrl": "",
+    "RpcUrl": "wss://mainnet.infura.io/ws/v3/44648510172d449cbd4164acc25b97fc",
     "ListenAddress": "0.0.0.0:10000"
 }
