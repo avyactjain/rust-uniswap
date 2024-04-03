@@ -2,21 +2,25 @@ use std::str::FromStr;
 
 use crate::{
     config::UniswapAPIconfig,
-    uniswap::{uniswap_api_server::UniswapApi, BalanceRequest, BalanceResponse, EthPriceResponse},
+    uniswap::{
+        uniswap_api_server::UniswapApi, BalanceRequest, BalanceResponse, PriceRequest,
+        PriceResponse,
+    },
 };
 use tonic::{Request, Response, Status};
 use web3::{
     contract::{Contract, Error, Options},
     transports::WebSocket,
-    types::H160,
+    types::{Address, H160, U256},
     Web3,
 };
+
+
 
 #[derive(Debug)]
 pub struct UniswapService {
     pub config: UniswapAPIconfig,
     pub web3_client: Web3<WebSocket>,
-    pub eth_usdc_contract: Contract<WebSocket>,
 }
 
 #[tonic::async_trait]
@@ -48,39 +52,89 @@ impl UniswapApi for UniswapService {
         Ok(Response::new(reply))
     }
 
-    async fn get_eth_price_from_pool(
+    async fn get_price_from_pool(
         &self,
-        _request: Request<()>,
-    ) -> Result<Response<EthPriceResponse>, Status> {
-        let slot0_query: Result<(u128, i64, u128, u128, u128, u128, bool), Error> = self
-            .eth_usdc_contract
-            .clone()
-            .query("slot0", (), None, Options::default(), None)
-            .await;
+        request: Request<PriceRequest>,
+    ) -> Result<Response<PriceResponse>, Status> {
+        let req = request.into_inner();
 
-        let reply = match slot0_query {
-            Ok(slot0) => {
-                let sqrt_price_x_96 = slot0.0;
+        let address = Address::from_str(&req.contract_address);
 
-                let two: u128 = 2;
-                let ten: u128 = 10;
-                let q_96: u128 = two.pow(96);
+        match address {
+            Ok(h160_addr) => {
+                let load_contract = Contract::from_json(
+                    self.web3_client.eth(),
+                    h160_addr,
+                    include_bytes!("../abi/uniV3Pool.json"),
+                );
 
-                let p = (sqrt_price_x_96 as f64 / q_96 as f64).powf(2.0);
+                match load_contract {
+                    Ok(contract) => {
+                        let slot0_query: Result<(U256, i64, u128, u128, u128, u128, bool), Error> =
+                            contract
+                                .clone()
+                                .query("slot0", (), None, Options::default(), None)
+                                .await;
 
-                let price_of_eth = ten.pow(12) as f64 / p;
+                        let token0: Result<Address, Error> = contract
+                            .clone()
+                            .query("token0", (), None, Options::default(), None)
+                            .await; //WETH
 
-                EthPriceResponse {
-                    successful: true,
-                    message: format!("Price of ETH is : {:.1$} USDC", price_of_eth, 4),
+                        let token1: Result<Address, Error> = contract
+                            .clone()
+                            .query("token1", (), None, Options::default(), None)
+                            .await; //USDT
+
+                        println!("Token0 is -> {:?}", token0);
+                        println!("Token1 is -> {:?}", token1);
+
+                        let reply: PriceResponse = match slot0_query {
+                            Ok(slot0) => {
+                                let sqrt_price_x_96 = slot0.0;
+
+                                let x = sqrt_price_x_96.pow(U256::from(2));
+                                let y = U256::from(2).pow(U256::from(192));
+                                let ten_12: U256 = U256::from(10).pow(U256::from(12));
+
+                                println!("x is -> {}", x);
+                                println!("y is -> {}", y);
+                                println!("ten_12 is -> {}", ten_12);
+
+
+                                
+                                //(x / y ) ** ten_12 is my answer
+
+                                PriceResponse {
+
+                                    successful: true,
+                                    message: format!(
+                                        "Price of ETH is : {:.1$} USDC",
+                                        (x / y) * ten_12,
+                                        4
+                                    ),
+                                }
+                            }
+                            Err(e) => PriceResponse {
+                                successful: false,
+                                message: format!("Error : {e}"),
+                            },
+                        };
+
+                        Ok(Response::new(reply))
+                    }
+                    Err(e) => Ok(Response::new(PriceResponse {
+                        successful: false,
+                        message: format!("Error : {e}"),
+                    })),
                 }
             }
-            Err(e) => EthPriceResponse {
-                successful: false,
-                message: format!("Error : {}", e),
-            },
-        };
-
-        Ok(Response::new(reply))
+            Err(e) => {
+                return Ok(Response::new(PriceResponse {
+                    successful: false,
+                    message: format!("Error : {e}"),
+                }));
+            }
+        }
     }
 }

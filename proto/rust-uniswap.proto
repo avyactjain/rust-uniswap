@@ -6,8 +6,8 @@ import "google/protobuf/empty.proto";
 
 service uniswapAPI {
     rpc GetWalletBalance (BalanceRequest) returns (BalanceResponse);
-    rpc GetEthPriceFromPool (google.protobuf.Empty) returns (EthPriceResponse);
-}
+    rpc GetPriceFromPool (PriceRequest) returns (PriceResponse);
+    }
 
 
 message BalanceRequest {
@@ -19,7 +19,12 @@ message BalanceResponse {
     string message = 2;
 }
 
-message EthPriceResponse {
+message PriceResponse {
     bool successful = 1;
     string message = 2;
+}
+
+message PriceRequest {
+   
+    string contractAddress = 1;
 }
