@@ -14,11 +14,17 @@ pub struct BalanceResponse {
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct EthPriceResponse {
+pub struct PriceResponse {
     #[prost(bool, tag = "1")]
     pub successful: bool,
     #[prost(string, tag = "2")]
     pub message: ::prost::alloc::string::String,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PriceRequest {
+    #[prost(string, tag = "1")]
+    pub contract_address: ::prost::alloc::string::String,
 }
 /// Generated client implementations.
 pub mod uniswap_api_client {
@@ -130,13 +136,10 @@ pub mod uniswap_api_client {
                 .insert(GrpcMethod::new("uniswapAPI.uniswapAPI", "GetWalletBalance"));
             self.inner.unary(req, path, codec).await
         }
-        pub async fn get_eth_price_from_pool(
+        pub async fn get_price_from_pool(
             &mut self,
-            request: impl tonic::IntoRequest<()>,
-        ) -> std::result::Result<
-            tonic::Response<super::EthPriceResponse>,
-            tonic::Status,
-        > {
+            request: impl tonic::IntoRequest<super::PriceRequest>,
+        ) -> std::result::Result<tonic::Response<super::PriceResponse>, tonic::Status> {
             self.inner
                 .ready()
                 .await
@@ -148,11 +151,11 @@ pub mod uniswap_api_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/uniswapAPI.uniswapAPI/GetEthPriceFromPool",
+                "/uniswapAPI.uniswapAPI/GetPriceFromPool",
             );
             let mut req = request.into_request();
             req.extensions_mut()
-                .insert(GrpcMethod::new("uniswapAPI.uniswapAPI", "GetEthPriceFromPool"));
+                .insert(GrpcMethod::new("uniswapAPI.uniswapAPI", "GetPriceFromPool"));
             self.inner.unary(req, path, codec).await
         }
     }
@@ -168,13 +171,10 @@ pub mod uniswap_api_server {
             &self,
             request: tonic::Request<super::BalanceRequest>,
         ) -> std::result::Result<tonic::Response<super::BalanceResponse>, tonic::Status>;
-        async fn get_eth_price_from_pool(
+        async fn get_price_from_pool(
             &self,
-            request: tonic::Request<()>,
-        ) -> std::result::Result<
-            tonic::Response<super::EthPriceResponse>,
-            tonic::Status,
-        >;
+            request: tonic::Request<super::PriceRequest>,
+        ) -> std::result::Result<tonic::Response<super::PriceResponse>, tonic::Status>;
     }
     #[derive(Debug)]
     pub struct UniswapApiServer<T: UniswapApi> {
@@ -301,20 +301,23 @@ pub mod uniswap_api_server {
                     };
                     Box::pin(fut)
                 }
-                "/uniswapAPI.uniswapAPI/GetEthPriceFromPool" => {
+                "/uniswapAPI.uniswapAPI/GetPriceFromPool" => {
                     #[allow(non_camel_case_types)]
-                    struct GetEthPriceFromPoolSvc<T: UniswapApi>(pub Arc<T>);
-                    impl<T: UniswapApi> tonic::server::UnaryService<()>
-                    for GetEthPriceFromPoolSvc<T> {
-                        type Response = super::EthPriceResponse;
+                    struct GetPriceFromPoolSvc<T: UniswapApi>(pub Arc<T>);
+                    impl<T: UniswapApi> tonic::server::UnaryService<super::PriceRequest>
+                    for GetPriceFromPoolSvc<T> {
+                        type Response = super::PriceResponse;
                         type Future = BoxFuture<
                             tonic::Response<Self::Response>,
                             tonic::Status,
                         >;
-                        fn call(&mut self, request: tonic::Request<()>) -> Self::Future {
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::PriceRequest>,
+                        ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as UniswapApi>::get_eth_price_from_pool(&inner, request)
+                                <T as UniswapApi>::get_price_from_pool(&inner, request)
                                     .await
                             };
                             Box::pin(fut)
@@ -327,7 +330,7 @@ pub mod uniswap_api_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let inner = inner.0;
-                        let method = GetEthPriceFromPoolSvc(inner);
+                        let method = GetPriceFromPoolSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(

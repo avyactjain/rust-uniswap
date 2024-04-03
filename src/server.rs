@@ -24,6 +24,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let addr: SocketAddr = config.listen_address.parse()?;
 
+    println!("INFO! : rust-uniswap-server active on {}", addr.to_string());
+
     let uniswap_service = UniswapService {
         config,
         web3_client,
