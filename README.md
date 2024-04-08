@@ -26,3 +26,5 @@ The project is in the initial stages and currently supports only ethereum mainne
 - Remove Unwraps
 - Adding tracing/logging module
 
+
+<img src="demo.giff?raw=true" width="200px">
