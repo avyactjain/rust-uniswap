@@ -7,6 +7,7 @@ use crate::{
         PriceResponse,
     },
 };
+use rust_decimal::{prelude::FromPrimitive, Decimal};
 use tonic::{Request, Response, Status};
 use web3::{
     contract::{Contract, Error, Options},
@@ -14,8 +15,6 @@ use web3::{
     types::{Address, H160, U256},
     Web3,
 };
-
-
 
 #[derive(Debug)]
 pub struct UniswapService {
@@ -76,42 +75,44 @@ impl UniswapApi for UniswapService {
                                 .query("slot0", (), None, Options::default(), None)
                                 .await;
 
-                        let token0: Result<Address, Error> = contract
+                        let token0_query: Result<Address, Error> = contract
                             .clone()
                             .query("token0", (), None, Options::default(), None)
-                            .await; //WETH
+                            .await;
 
-                        let token1: Result<Address, Error> = contract
+                        let token1_query: Result<Address, Error> = contract
                             .clone()
                             .query("token1", (), None, Options::default(), None)
-                            .await; //USDT
-
-                        println!("Token0 is -> {:?}", token0);
-                        println!("Token1 is -> {:?}", token1);
+                            .await;
 
                         let reply: PriceResponse = match slot0_query {
                             Ok(slot0) => {
                                 let sqrt_price_x_96 = slot0.0;
 
-                                let x = sqrt_price_x_96.pow(U256::from(2));
-                                let y = U256::from(2).pow(U256::from(192));
-                                let ten_12: U256 = U256::from(10).pow(U256::from(12));
+                                let two = U256::from(2);
+                                let one_ninety_two = U256::from(192);
+                                let ten = U256::from(10);
+                                let tweleve = U256::from(12);
 
-                                println!("x is -> {}", x);
-                                println!("y is -> {}", y);
-                                println!("ten_12 is -> {}", ten_12);
+                                let token0 = token0_query.unwrap().to_string();
+                                let token1 = token1_query.unwrap().to_string();
 
+                                let x_float =
+                                    sqrt_price_x_96.pow(two).to_string().parse::<f64>().unwrap();
+                                let y_float =
+                                    two.pow(one_ninety_two).to_string().parse::<f64>().unwrap();
+                                let ten_12_float =
+                                    ten.pow(tweleve).to_string().parse::<f64>().unwrap();
 
-                                
-                                //(x / y ) ** ten_12 is my answer
+                                let price_decimal =
+                                    Decimal::from_f64((x_float / y_float) * ten_12_float)
+                                        .unwrap()
+                                        .round_dp(4);
 
                                 PriceResponse {
-
                                     successful: true,
                                     message: format!(
-                                        "Price of ETH is : {:.1$} USDC",
-                                        (x / y) * ten_12,
-                                        4
+                                        "Price of 1 {token0} = {price_decimal} {token1}",
                                     ),
                                 }
                             }

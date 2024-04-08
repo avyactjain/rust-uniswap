@@ -1,4 +1,4 @@
-use std::{net::SocketAddr, str::FromStr};
+use std::net::SocketAddr;
 
 use tonic::transport::Server;
 use uniswap::uniswap_api_server::UniswapApiServer;
@@ -12,7 +12,6 @@ mod types;
 mod uniswap_service;
 
 use config::UniswapAPIconfig;
-use web3::{contract::Contract, types::Address};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -24,7 +23,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let addr: SocketAddr = config.listen_address.parse()?;
 
-    println!("INFO! : rust-uniswap-server active on {}", addr.to_string());
+    println!("INFO! : rust-uniswap-server active on {}", addr);
 
     let uniswap_service = UniswapService {
         config,
