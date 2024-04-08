@@ -27,4 +27,4 @@ The project is in the initial stages and currently supports only ethereum mainne
 - Adding tracing/logging module
 
 
-<img src="demo.giff?raw=true" width="200px">
+<img src="demo.gif?raw=true" width="200px">
